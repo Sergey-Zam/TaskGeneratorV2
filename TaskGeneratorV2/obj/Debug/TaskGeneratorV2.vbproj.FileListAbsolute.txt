@@ -1,0 +1,17 @@
+c:\users\сергей\documents\visual studio 2015\Projects\TaskGeneratorV2\TaskGeneratorV2\bin\Debug\TaskGeneratorV2.exe.config
+c:\users\сергей\documents\visual studio 2015\Projects\TaskGeneratorV2\TaskGeneratorV2\bin\Debug\TaskGeneratorV2.exe
+c:\users\сергей\documents\visual studio 2015\Projects\TaskGeneratorV2\TaskGeneratorV2\bin\Debug\TaskGeneratorV2.pdb
+c:\users\сергей\documents\visual studio 2015\Projects\TaskGeneratorV2\TaskGeneratorV2\bin\Debug\TaskGeneratorV2.xml
+c:\users\сергей\documents\visual studio 2015\Projects\TaskGeneratorV2\TaskGeneratorV2\obj\Debug\TaskGeneratorV2.vbprojResolveAssemblyReference.cache
+c:\users\сергей\documents\visual studio 2015\Projects\TaskGeneratorV2\TaskGeneratorV2\obj\Debug\TaskGeneratorV2.Form1.resources
+c:\users\сергей\documents\visual studio 2015\Projects\TaskGeneratorV2\TaskGeneratorV2\obj\Debug\TaskGeneratorV2.Resources.resources
+c:\users\сергей\documents\visual studio 2015\Projects\TaskGeneratorV2\TaskGeneratorV2\obj\Debug\TaskGeneratorV2.vbproj.GenerateResource.Cache
+c:\users\сергей\documents\visual studio 2015\Projects\TaskGeneratorV2\TaskGeneratorV2\obj\Debug\TaskGeneratorV2.exe
+c:\users\сергей\documents\visual studio 2015\Projects\TaskGeneratorV2\TaskGeneratorV2\obj\Debug\TaskGeneratorV2.xml
+c:\users\сергей\documents\visual studio 2015\Projects\TaskGeneratorV2\TaskGeneratorV2\obj\Debug\TaskGeneratorV2.pdb
+c:\users\сергей\documents\visual studio 2015\Projects\TaskGeneratorV2\TaskGeneratorV2\bin\Debug\PdfSharp.Charting.dll
+c:\users\сергей\documents\visual studio 2015\Projects\TaskGeneratorV2\TaskGeneratorV2\bin\Debug\PdfSharp.dll
+c:\users\сергей\documents\visual studio 2015\Projects\TaskGeneratorV2\TaskGeneratorV2\bin\Debug\PdfSharp.xml
+c:\users\сергей\documents\visual studio 2015\Projects\TaskGeneratorV2\TaskGeneratorV2\bin\Debug\PdfSharp.Charting.xml
+c:\users\сергей\documents\visual studio 2015\Projects\TaskGeneratorV2\TaskGeneratorV2\bin\Debug\de\PdfSharp.resources.dll
+c:\users\сергей\documents\visual studio 2015\Projects\TaskGeneratorV2\TaskGeneratorV2\bin\Debug\de\PdfSharp.Charting.resources.dll
