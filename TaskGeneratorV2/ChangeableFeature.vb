@@ -9,12 +9,12 @@ Imports PdfSharp.Drawing
 Imports PdfSharp.Pdf
 
 Public Class ChangeableFeature
-    Public feature As ExtrudeFeature = Nothing 'фича
+    Public feature As PartFeature = Nothing 'фича
     Public distance As Double = 0 'эталонное значение параметра distance
     Public availableValues As New List(Of Double) 'коллекция (числа, в мм): все доступные значения. Изначально пустая.
 
     'конструктор
-    Public Sub New(ByVal Feature As ExtrudeFeature, ByVal Distance As Double)
+    Public Sub New(ByVal Feature As PartFeature, ByVal Distance As Double)
         Me.feature = Feature
         Me.distance = Distance
     End Sub

@@ -26,6 +26,14 @@ Public Class TaskInfo
     Public currentImageWrong2Name As String = ""
     Public currentImageWrong3Name As String = ""
 
+    'параметры минимального/максимального изменения параметра feature и шаг изменений
+    'пример: min: 5мм, max: 20mm, change: 1mm. Значит все рассматриваемые новые варианты значений параметра будут в
+    'диапазоне: [parametr-20; paramter-5][parametr+5; parametr+20] и шаг в этом диапазоне будет 1мм (ожидается ~30 вариантов)
+    'делить на 10 необходимо, так как Inventor работает с сантиметрами (а на форме вводятся миллиметры)
+    Public minChangeValue As Double = 0
+    Public maxChangeValue As Double = 0
+    Public changeStep As Double = 0
+
     'вернуть все поля класса (кроме savePath) в изначальное состояние. Также очистить PictureBox-es
     Public Sub Restart()
         isReady = False
@@ -54,5 +62,9 @@ Public Class TaskInfo
         Form1.pbVariant3.Refresh()
         Form1.pbVariant4.Image = Nothing
         Form1.pbVariant4.Refresh()
+
+        minChangeValue = (Form1.nudMinChangeValue.Value / 10)
+        maxChangeValue = (Form1.nudMaxChangeValue.Value / 10)
+        changeStep = (Form1.nudChangeStep.Value / 10)
     End Sub
 End Class

@@ -9,10 +9,6 @@ Imports PdfSharp.Drawing
 Imports PdfSharp.Pdf
 
 Public Class Form1
-    Const MIN_CHANGE_VALUE As Double = 1.5 'рекомендуется 0.5 (это 5мм)
-    Const MAX_CHANGE_VALUE As Double = 3 'рекомендуется 2 (это 20мм)
-    Const CHANGE_STEP As Double = 0.1 'рекомендуется 0.1 (это 1мм)
-
     Dim _invApp As Inventor.Application 'переменная типа Inventor.Application Используется для доступа к объекту Inventor Application
     Dim _started As Boolean = False 'Данная логическая переменная служит индикатором, был ли данный сеанс Inventor создан нашей программой
     Dim _taskInfo As TaskInfo = New TaskInfo() 'Класс с дополнительной техничсекой информацией по текущей задаче
@@ -52,7 +48,11 @@ Public Class Form1
 
         _taskInfo.Restart() 'очистить старые значения от прошлой генерации
 
-        GetActiveDocument() 'получить открытый документ в Inventor
+        CheckNumericValues() 'проверить, правильно ли пользователем введены входные значения в numericUpDowns
+
+        If _taskInfo.isGenerationFailing = False Then
+            GetActiveDocument() 'получить открытый документ в Inventor
+        End If
 
         If _taskInfo.isGenerationFailing = False Then
             GetRightVariants() 'получение изображений правильных вариантов
@@ -83,6 +83,21 @@ Public Class Form1
             _taskInfo.isReady = True
         Else
             MsgBox("Задание не было сгенерировано, повторите для другой детали")
+        End If
+    End Sub
+
+    'вспомогательная функция: проверить, правильно ли пользователем введены входные значения в numericUpDowns
+    Private Sub CheckNumericValues()
+        If _taskInfo.minChangeValue >= _taskInfo.maxChangeValue Then
+            MsgBox("Значение минимального изменения параметра должно быть меньше значения максимального изменения параметра")
+            _taskInfo.isGenerationFailing = True 'дальнейшая генерация невозможна
+            Exit Sub
+        End If
+
+        If _taskInfo.changeStep >= _taskInfo.minChangeValue Then
+            MsgBox("Значение шага изменения параметра должно быть меньше значения минимального изменения параметра")
+            _taskInfo.isGenerationFailing = True 'дальнейшая генерация невозможна
+            Exit Sub
         End If
     End Sub
 
@@ -230,30 +245,59 @@ Public Class Form1
 
     'вспомогательная функция: Построение списка возможных вариантов изменений детали
     Private Sub BuildingPossiblePartChanges()
-        'Получить коллекцию: фичи "выдавливание" (ExtrudeFeatures) //потом можно расширить работу на другие фичи
-        Dim oExtrudeFeatures As ExtrudeFeatures = _taskInfo.oDoc.ComponentDefinition.Features.ExtrudeFeatures
+        'Если выбран вариант изменять Extrude
+        If rbExtrude.Checked Then
+            'Получить коллекцию: фичи "выдавливание" (ExtrudeFeatures)
+            Dim oExtrudeFeatures As ExtrudeFeatures = _taskInfo.oDoc.ComponentDefinition.Features.ExtrudeFeatures
 
-        'Проверить: если в коллекции фич "выдавливание" ноль элементов, дальнейшая работа невозможна
-        If oExtrudeFeatures.Count = 0 Then
-            MsgBox("Ошибка: деталь не содержит ни одной extrude feature.")
-            _taskInfo.isGenerationFailing = True 'дальнейшая генерация невозможна
-            Exit Sub
+            'Проверить: если в коллекции фич "выдавливание" ноль элементов, дальнейшая работа невозможна
+            If oExtrudeFeatures.Count = 0 Then
+                MsgBox("Ошибка: деталь не содержит ни одной extrude feature.")
+                _taskInfo.isGenerationFailing = True 'дальнейшая генерация невозможна
+                Exit Sub
+            End If
+
+            'Проходим по коллекции фич "выдавливание", работаем с каждой конкретной фичей
+            For Each oExtrudeFeature As ExtrudeFeature In oExtrudeFeatures
+                'необходимый параметр distance всегда стоит первым в коллекции FeatureDimensions
+                Dim distance As Double = oExtrudeFeature.FeatureDimensions(1).Parameter._Value
+
+                'Параметр distance не нулевой? Если да, фича изменяема. Добавить ее в пока пустую коллекцию "изменяемые фичи"
+                If distance <> 0 Then
+                    _taskInfo.changeableFeatures.Add(New ChangeableFeature(oExtrudeFeature, distance))
+                End If
+            Next
         End If
 
-        'Проходим по коллекции фич "выдавливание", работаем с каждой конкретной фичей
-        For Each oExtrudeFeature As ExtrudeFeature In oExtrudeFeatures
-            'необходимый параметр distance всегда стоит первым в коллекции FeatureDimensions
-            Dim distance As Double = oExtrudeFeature.FeatureDimensions(1).Parameter._Value
+        'Если выбран вариант изменять Chamfer
+        If rbChamfer.Checked Then
+            'Получить коллекцию: фичи "фаска" (ChamferFeatures)
+            Dim oChamferFeatures As ChamferFeatures = _taskInfo.oDoc.ComponentDefinition.Features.ChamferFeatures
 
-            'Параметр distance не нулевой? Если да, фича изменяема. Добавить ее в пока пустую коллекцию "изменяемые фичи"
-            If distance <> 0 Then
-                _taskInfo.changeableFeatures.Add(New ChangeableFeature(oExtrudeFeature, distance))
+            'Проверить: если в коллекции фич "фаска" ноль элементов, дальнейшая работа невозможна
+            If oChamferFeatures.Count = 0 Then
+                MsgBox("Ошибка: деталь не содержит ни одной chamfer feature.")
+                _taskInfo.isGenerationFailing = True 'дальнейшая генерация невозможна
+                Exit Sub
             End If
-        Next
 
+            'Проходим по коллекции фич "фаска", работаем с каждой конкретной фичей
+            For Each oChamferFeature As ChamferFeature In oChamferFeatures
+                'необходимый параметр distance всегда стоит первым в коллекции ChamferDimensions
+                Dim distance As Double = oChamferFeature.FeatureDimensions(1).Parameter._Value
+
+                'Параметр distance не нулевой? Если да, фича изменяема. Добавить ее в пока пустую коллекцию "изменяемые фичи"
+                If distance <> 0 Then
+                    _taskInfo.changeableFeatures.Add(New ChangeableFeature(oChamferFeature, distance))
+                End If
+            Next
+        End If
+
+
+        'ДАЛЕЕ ОБЩИЙ КОД ДЛЯ РАЗНЫХ ТИПОВ ФИЧ
         'Проверить: если в коллекции фич "изменяемые фичи" ноль элементов, дальнейшая работа невозможна
         If _taskInfo.changeableFeatures.Count = 0 Then
-            MsgBox("Ошибка: ни одну из extrude features невозможно изменить.")
+            MsgBox("Ошибка: ни одну из features невозможно изменить.")
             _taskInfo.isGenerationFailing = True 'дальнейшая генерация невозможна
             Exit Sub
         End If
@@ -263,20 +307,20 @@ Public Class Form1
         'Проходим по коллекции "изменяемые фичи", работаем с каждой конкретной фичей
         For Each cf As ChangeableFeature In _taskInfo.changeableFeatures
             'Получаем нижнюю границу диапазона при вычитании: Вычитаем из поля disctance 20мм
-            Dim minBottom As Double = cf.distance - MAX_CHANGE_VALUE
+            Dim minBottom As Double = cf.distance - _taskInfo.maxChangeValue
             'Получаем верхнюю границу диапазона при вычитании: Вычитаем из поля disctance 5мм
-            Dim maxBottom As Double = cf.distance - MIN_CHANGE_VALUE
+            Dim maxBottom As Double = cf.distance - _taskInfo.minChangeValue
             'Проходим по диапазону min-max, и все числа сохраняем в поле доступные значения
-            For index As Double = minBottom To maxBottom Step CHANGE_STEP
+            For index As Double = minBottom To maxBottom Step _taskInfo.changeStep
                 cf.availableValues.Add(index)
             Next
 
             'Получаем нижнюю границу диапазона при прибавлении: Прибавляем к полю disctance 5мм
-            Dim minTop As Double = cf.distance + MIN_CHANGE_VALUE
+            Dim minTop As Double = cf.distance + _taskInfo.minChangeValue
             'Получаем верхнюю границу диапазона при прибавлении: Прибавляем к полю disctance 20мм
-            Dim maxTop As Double = cf.distance + MAX_CHANGE_VALUE
+            Dim maxTop As Double = cf.distance + _taskInfo.maxChangeValue
             'Проходим по диапазону min-max, и все числа сохраняем в поле доступные значения
-            For index As Double = minTop To maxTop Step CHANGE_STEP
+            For index As Double = minTop To maxTop Step _taskInfo.changeStep
                 cf.availableValues.Add(index)
             Next
         Next
@@ -301,7 +345,7 @@ Public Class Form1
                 Dim isOk As Boolean 'показывает, успешно ли произошло преобразование размера в модели в inventor
                 'Изменяем параметр 'distance' текущей фичи на текущее доступное значение (у детали в inventor)
                 'и проверяем 1) возможно ли это изменение И 2) не стала ли хоть одна фича "подавленной" из-за изменения
-                isOk = ChangeParamDistInExtrudeFeatureInInventor(cf.feature, d)
+                isOk = ChangeParamDistInFeatureInInventor(cf.feature, d)
 
                 'Если условие 1 или 2 НЕ собоюдено (изменение произошло с ошибкой или фича(и) подавлена(ы))
                 If isOk = False Then
@@ -310,7 +354,7 @@ Public Class Form1
                 End If
 
                 'Восстанавливаем параметр distance (у детали в inventor) в изначальное значение.
-                ChangeParamDistInExtrudeFeatureInInventor(cf.feature, cf.distance)
+                ChangeParamDistInFeatureInInventor(cf.feature, cf.distance)
             Next
         Next
 
@@ -339,7 +383,7 @@ Public Class Form1
 
         'Проверить: если в коллекции фич "изменяемые фичи" ноль элементов, дальнейшая работа невозможна
         If _taskInfo.changeableFeatures.Count = 0 Then
-            MsgBox("Ошибка: ни одну из extrude features невозможно изменить.")
+            MsgBox("Ошибка: ни одну из features невозможно изменить.")
             _taskInfo.isGenerationFailing = True 'дальнейшая генерация невозможна
             Exit Sub
         End If
@@ -365,7 +409,7 @@ Public Class Form1
         'del_string &= "выбрано новое значение: " & selectedValue & vbCrLf
 
         'Изменяем параметр 'distance' выбранной фичи на выбранное значение (у детали в inventor).
-        ChangeParamDistInExtrudeFeatureInInventor(_taskInfo.selectedFeature.feature, selectedValue)
+        ChangeParamDistInFeatureInInventor(_taskInfo.selectedFeature.feature, selectedValue)
 
         'del_string &= "после применения нового значение, значение стало: " & _taskInfo.selectedFeature.feature.FeatureDimensions(1).Parameter._Value
         'MsgBox(del_string)
@@ -374,7 +418,7 @@ Public Class Form1
     'вспомогательная функция: восстановление детали в изначальное состояние
     Private Sub PartRecovery()
         'Восстанавливаем параметр distance (у детали в inventor) в изначальное значение.
-        ChangeParamDistInExtrudeFeatureInInventor(_taskInfo.selectedFeature.feature, _taskInfo.selectedFeature.distance)
+        ChangeParamDistInFeatureInInventor(_taskInfo.selectedFeature.feature, _taskInfo.selectedFeature.distance)
     End Sub
 
     'вспомогательная функция: размещение на форме изображений вариантов Front и Top
@@ -587,16 +631,16 @@ Public Class Form1
     'вспомогательная функция: иземенить параметр ExtrudeFeature в модели в инвентор на указанный 
     'определить: 1-удается ли сделать это преобразование в инвентор?
     ' 2-изменился ли параметр "подавлено" у какой либо фичи (не только Extrude) в инвенторе на положительный?
-    Private Function ChangeParamDistInExtrudeFeatureInInventor(ByVal extrudeFeature As ExtrudeFeature, ByVal newDistance As Double)
+    Private Function ChangeParamDistInFeatureInInventor(ByVal feature As PartFeature, ByVal newDistance As Double)
         '1-удается ли сделать это преобразование в инвентор?
         Try
-            extrudeFeature.FeatureDimensions(1).Parameter._Value = newDistance
+            feature.FeatureDimensions(1).Parameter._Value = newDistance
             _taskInfo.oDoc.Update()
         Catch ex As Exception
             Return False
         End Try
 
-        '2-изменился ли параметр "подавлено" у какой либо фичи (не только Extrude) в инвенторе на положительный?
+        '2-изменился ли параметр "подавлено" у какой либо фичи (вообще, любого типа) в инвенторе на положительный?
         Dim oPartFeatures As PartFeatures = _taskInfo.oDoc.ComponentDefinition.Features 'получить вообще все features
         For Each partFeature As PartFeature In oPartFeatures
             If partFeature.Suppressed = True Then
