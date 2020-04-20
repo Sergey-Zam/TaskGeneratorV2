@@ -1,9 +1,9 @@
-﻿<Global.Microsoft.VisualBasic.CompilerServices.DesignerGenerated()> _
+﻿<Global.Microsoft.VisualBasic.CompilerServices.DesignerGenerated()>
 Partial Class Form1
     Inherits System.Windows.Forms.Form
 
     'Форма переопределяет dispose для очистки списка компонентов.
-    <System.Diagnostics.DebuggerNonUserCode()> _
+    <System.Diagnostics.DebuggerNonUserCode()>
     Protected Overrides Sub Dispose(ByVal disposing As Boolean)
         Try
             If disposing AndAlso components IsNot Nothing Then
@@ -20,7 +20,7 @@ Partial Class Form1
     'Примечание: следующая процедура является обязательной для конструктора форм Windows Forms
     'Для ее изменения используйте конструктор форм Windows Form.  
     'Не изменяйте ее в редакторе исходного кода.
-    <System.Diagnostics.DebuggerStepThrough()> _
+    <System.Diagnostics.DebuggerStepThrough()>
     Private Sub InitializeComponent()
         Me.Label1 = New System.Windows.Forms.Label()
         Me.btnRun = New System.Windows.Forms.Button()
@@ -33,6 +33,7 @@ Partial Class Form1
         Me.Label3 = New System.Windows.Forms.Label()
         Me.Label6 = New System.Windows.Forms.Label()
         Me.Panel2 = New System.Windows.Forms.Panel()
+        Me.lblView = New System.Windows.Forms.Label()
         Me.Label10 = New System.Windows.Forms.Label()
         Me.pbVariant4 = New System.Windows.Forms.PictureBox()
         Me.Label9 = New System.Windows.Forms.Label()
@@ -46,6 +47,8 @@ Partial Class Form1
         Me.Label11 = New System.Windows.Forms.Label()
         Me.btnExport = New System.Windows.Forms.Button()
         Me.Panel4 = New System.Windows.Forms.Panel()
+        Me.Label16 = New System.Windows.Forms.Label()
+        Me.cbView = New System.Windows.Forms.ComboBox()
         Me.Label15 = New System.Windows.Forms.Label()
         Me.Label14 = New System.Windows.Forms.Label()
         Me.Label13 = New System.Windows.Forms.Label()
@@ -53,8 +56,16 @@ Partial Class Form1
         Me.nudChangeStep = New System.Windows.Forms.NumericUpDown()
         Me.nudMaxChangeValue = New System.Windows.Forms.NumericUpDown()
         Me.GroupBox1 = New System.Windows.Forms.GroupBox()
+        Me.rbShell = New System.Windows.Forms.RadioButton()
+        Me.rbHole = New System.Windows.Forms.RadioButton()
+        Me.rbFillet = New System.Windows.Forms.RadioButton()
         Me.rbChamfer = New System.Windows.Forms.RadioButton()
         Me.rbExtrude = New System.Windows.Forms.RadioButton()
+        Me.Panel5 = New System.Windows.Forms.Panel()
+        Me.rbEmboss = New System.Windows.Forms.RadioButton()
+        Me.rbRevolve = New System.Windows.Forms.RadioButton()
+        Me.rbThicken = New System.Windows.Forms.RadioButton()
+        Me.rbRib = New System.Windows.Forms.RadioButton()
         Me.Panel1.SuspendLayout()
         CType(Me.pbTop, System.ComponentModel.ISupportInitialize).BeginInit()
         CType(Me.pbFront, System.ComponentModel.ISupportInitialize).BeginInit()
@@ -69,6 +80,7 @@ Partial Class Form1
         CType(Me.nudChangeStep, System.ComponentModel.ISupportInitialize).BeginInit()
         CType(Me.nudMaxChangeValue, System.ComponentModel.ISupportInitialize).BeginInit()
         Me.GroupBox1.SuspendLayout()
+        Me.Panel5.SuspendLayout()
         Me.SuspendLayout()
         '
         'Label1
@@ -83,7 +95,7 @@ Partial Class Form1
         '
         'btnRun
         '
-        Me.btnRun.Location = New System.Drawing.Point(584, 4)
+        Me.btnRun.Location = New System.Drawing.Point(388, 4)
         Me.btnRun.Name = "btnRun"
         Me.btnRun.Size = New System.Drawing.Size(220, 64)
         Me.btnRun.TabIndex = 1
@@ -172,14 +184,15 @@ Partial Class Form1
         Me.Label6.ForeColor = System.Drawing.Color.Teal
         Me.Label6.Location = New System.Drawing.Point(3, 5)
         Me.Label6.Name = "Label6"
-        Me.Label6.Size = New System.Drawing.Size(517, 20)
+        Me.Label6.Size = New System.Drawing.Size(413, 20)
         Me.Label6.TabIndex = 5
-        Me.Label6.Text = "Задание: выберите правильный вид слева (Left) на деталь"
+        Me.Label6.Text = "Задание: выберите правильный вид на деталь"
         '
         'Panel2
         '
         Me.Panel2.BackColor = System.Drawing.Color.White
         Me.Panel2.BorderStyle = System.Windows.Forms.BorderStyle.FixedSingle
+        Me.Panel2.Controls.Add(Me.lblView)
         Me.Panel2.Controls.Add(Me.Label10)
         Me.Panel2.Controls.Add(Me.pbVariant4)
         Me.Panel2.Controls.Add(Me.Label9)
@@ -193,6 +206,17 @@ Partial Class Form1
         Me.Panel2.Name = "Panel2"
         Me.Panel2.Size = New System.Drawing.Size(797, 406)
         Me.Panel2.TabIndex = 6
+        '
+        'lblView
+        '
+        Me.lblView.AutoSize = True
+        Me.lblView.Font = New System.Drawing.Font("Microsoft Sans Serif", 12.0!, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, CType(204, Byte))
+        Me.lblView.ForeColor = System.Drawing.Color.Teal
+        Me.lblView.Location = New System.Drawing.Point(411, 5)
+        Me.lblView.Name = "lblView"
+        Me.lblView.Size = New System.Drawing.Size(108, 20)
+        Me.lblView.TabIndex = 12
+        Me.lblView.Text = "слева (Left)"
         '
         'Label10
         '
@@ -312,7 +336,7 @@ Partial Class Form1
         '
         'btnExport
         '
-        Me.btnExport.Location = New System.Drawing.Point(648, 70)
+        Me.btnExport.Location = New System.Drawing.Point(452, 70)
         Me.btnExport.Name = "btnExport"
         Me.btnExport.Size = New System.Drawing.Size(156, 23)
         Me.btnExport.TabIndex = 3
@@ -322,24 +346,44 @@ Partial Class Form1
         'Panel4
         '
         Me.Panel4.BackColor = System.Drawing.Color.FromArgb(CType(CType(128, Byte), Integer), CType(CType(203, Byte), Integer), CType(CType(196, Byte), Integer))
+        Me.Panel4.Controls.Add(Me.Label16)
+        Me.Panel4.Controls.Add(Me.cbView)
         Me.Panel4.Controls.Add(Me.Label15)
         Me.Panel4.Controls.Add(Me.Label14)
         Me.Panel4.Controls.Add(Me.Label13)
         Me.Panel4.Controls.Add(Me.nudMinChangeValue)
         Me.Panel4.Controls.Add(Me.nudChangeStep)
         Me.Panel4.Controls.Add(Me.nudMaxChangeValue)
-        Me.Panel4.Controls.Add(Me.GroupBox1)
         Me.Panel4.Controls.Add(Me.btnExport)
         Me.Panel4.Controls.Add(Me.btnRun)
-        Me.Panel4.Location = New System.Drawing.Point(412, 0)
+        Me.Panel4.Location = New System.Drawing.Point(614, 0)
         Me.Panel4.Name = "Panel4"
-        Me.Panel4.Size = New System.Drawing.Size(820, 98)
+        Me.Panel4.Size = New System.Drawing.Size(620, 98)
         Me.Panel4.TabIndex = 8
+        '
+        'Label16
+        '
+        Me.Label16.AutoSize = True
+        Me.Label16.Location = New System.Drawing.Point(6, 74)
+        Me.Label16.Name = "Label16"
+        Me.Label16.Size = New System.Drawing.Size(147, 13)
+        Me.Label16.TabIndex = 13
+        Me.Label16.Text = "Сторона правильного вида:"
+        '
+        'cbView
+        '
+        Me.cbView.DropDownStyle = System.Windows.Forms.ComboBoxStyle.DropDownList
+        Me.cbView.FormattingEnabled = True
+        Me.cbView.Items.AddRange(New Object() {"слева (Left)", "справа (Right)", "сзади (Back)", "снизу (Bottom)"})
+        Me.cbView.Location = New System.Drawing.Point(154, 69)
+        Me.cbView.Name = "cbView"
+        Me.cbView.Size = New System.Drawing.Size(223, 21)
+        Me.cbView.TabIndex = 12
         '
         'Label15
         '
         Me.Label15.AutoSize = True
-        Me.Label15.Location = New System.Drawing.Point(255, 55)
+        Me.Label15.Location = New System.Drawing.Point(54, 53)
         Me.Label15.Name = "Label15"
         Me.Label15.Size = New System.Drawing.Size(323, 13)
         Me.Label15.TabIndex = 11
@@ -348,7 +392,7 @@ Partial Class Form1
         'Label14
         '
         Me.Label14.AutoSize = True
-        Me.Label14.Location = New System.Drawing.Point(255, 33)
+        Me.Label14.Location = New System.Drawing.Point(54, 31)
         Me.Label14.Name = "Label14"
         Me.Label14.Size = New System.Drawing.Size(226, 13)
         Me.Label14.TabIndex = 10
@@ -357,7 +401,7 @@ Partial Class Form1
         'Label13
         '
         Me.Label13.AutoSize = True
-        Me.Label13.Location = New System.Drawing.Point(255, 11)
+        Me.Label13.Location = New System.Drawing.Point(54, 9)
         Me.Label13.Name = "Label13"
         Me.Label13.Size = New System.Drawing.Size(220, 13)
         Me.Label13.TabIndex = 9
@@ -365,7 +409,7 @@ Partial Class Form1
         '
         'nudMinChangeValue
         '
-        Me.nudMinChangeValue.Location = New System.Drawing.Point(204, 9)
+        Me.nudMinChangeValue.Location = New System.Drawing.Point(6, 4)
         Me.nudMinChangeValue.Minimum = New Decimal(New Integer() {3, 0, 0, 0})
         Me.nudMinChangeValue.Name = "nudMinChangeValue"
         Me.nudMinChangeValue.Size = New System.Drawing.Size(45, 20)
@@ -374,7 +418,7 @@ Partial Class Form1
         '
         'nudChangeStep
         '
-        Me.nudChangeStep.Location = New System.Drawing.Point(204, 53)
+        Me.nudChangeStep.Location = New System.Drawing.Point(6, 48)
         Me.nudChangeStep.Minimum = New Decimal(New Integer() {1, 0, 0, 0})
         Me.nudChangeStep.Name = "nudChangeStep"
         Me.nudChangeStep.Size = New System.Drawing.Size(45, 20)
@@ -383,7 +427,7 @@ Partial Class Form1
         '
         'nudMaxChangeValue
         '
-        Me.nudMaxChangeValue.Location = New System.Drawing.Point(204, 31)
+        Me.nudMaxChangeValue.Location = New System.Drawing.Point(6, 26)
         Me.nudMaxChangeValue.Minimum = New Decimal(New Integer() {10, 0, 0, 0})
         Me.nudMaxChangeValue.Name = "nudMaxChangeValue"
         Me.nudMaxChangeValue.Size = New System.Drawing.Size(45, 20)
@@ -392,19 +436,57 @@ Partial Class Form1
         '
         'GroupBox1
         '
+        Me.GroupBox1.BackColor = System.Drawing.Color.Transparent
+        Me.GroupBox1.Controls.Add(Me.rbRib)
+        Me.GroupBox1.Controls.Add(Me.rbThicken)
+        Me.GroupBox1.Controls.Add(Me.rbRevolve)
+        Me.GroupBox1.Controls.Add(Me.rbEmboss)
+        Me.GroupBox1.Controls.Add(Me.rbShell)
+        Me.GroupBox1.Controls.Add(Me.rbHole)
+        Me.GroupBox1.Controls.Add(Me.rbFillet)
         Me.GroupBox1.Controls.Add(Me.rbChamfer)
         Me.GroupBox1.Controls.Add(Me.rbExtrude)
-        Me.GroupBox1.Location = New System.Drawing.Point(6, 3)
+        Me.GroupBox1.Location = New System.Drawing.Point(7, 3)
         Me.GroupBox1.Name = "GroupBox1"
-        Me.GroupBox1.Size = New System.Drawing.Size(191, 92)
+        Me.GroupBox1.Size = New System.Drawing.Size(172, 231)
         Me.GroupBox1.TabIndex = 4
         Me.GroupBox1.TabStop = False
         Me.GroupBox1.Text = "Какой тип feature будет изменён"
         '
+        'rbShell
+        '
+        Me.rbShell.AutoSize = True
+        Me.rbShell.Location = New System.Drawing.Point(6, 120)
+        Me.rbShell.Name = "rbShell"
+        Me.rbShell.Size = New System.Drawing.Size(92, 17)
+        Me.rbShell.TabIndex = 4
+        Me.rbShell.Text = "Shell (корпус)"
+        Me.rbShell.UseVisualStyleBackColor = True
+        '
+        'rbHole
+        '
+        Me.rbHole.AutoSize = True
+        Me.rbHole.Location = New System.Drawing.Point(6, 99)
+        Me.rbHole.Name = "rbHole"
+        Me.rbHole.Size = New System.Drawing.Size(108, 17)
+        Me.rbHole.TabIndex = 3
+        Me.rbHole.Text = "Hole (отверстие)"
+        Me.rbHole.UseVisualStyleBackColor = True
+        '
+        'rbFillet
+        '
+        Me.rbFillet.AutoSize = True
+        Me.rbFillet.Location = New System.Drawing.Point(6, 78)
+        Me.rbFillet.Name = "rbFillet"
+        Me.rbFillet.Size = New System.Drawing.Size(93, 17)
+        Me.rbFillet.TabIndex = 2
+        Me.rbFillet.Text = "Fillet (кромка)"
+        Me.rbFillet.UseVisualStyleBackColor = True
+        '
         'rbChamfer
         '
         Me.rbChamfer.AutoSize = True
-        Me.rbChamfer.Location = New System.Drawing.Point(9, 41)
+        Me.rbChamfer.Location = New System.Drawing.Point(6, 56)
         Me.rbChamfer.Name = "rbChamfer"
         Me.rbChamfer.Size = New System.Drawing.Size(105, 17)
         Me.rbChamfer.TabIndex = 1
@@ -415,7 +497,7 @@ Partial Class Form1
         '
         Me.rbExtrude.AutoSize = True
         Me.rbExtrude.Checked = True
-        Me.rbExtrude.Location = New System.Drawing.Point(9, 21)
+        Me.rbExtrude.Location = New System.Drawing.Point(6, 34)
         Me.rbExtrude.Name = "rbExtrude"
         Me.rbExtrude.Size = New System.Drawing.Size(144, 17)
         Me.rbExtrude.TabIndex = 0
@@ -423,12 +505,63 @@ Partial Class Form1
         Me.rbExtrude.Text = "Extrude (выдавливание)"
         Me.rbExtrude.UseVisualStyleBackColor = True
         '
+        'Panel5
+        '
+        Me.Panel5.AutoScroll = True
+        Me.Panel5.BackColor = System.Drawing.Color.FromArgb(CType(CType(128, Byte), Integer), CType(CType(203, Byte), Integer), CType(CType(196, Byte), Integer))
+        Me.Panel5.Controls.Add(Me.GroupBox1)
+        Me.Panel5.Location = New System.Drawing.Point(412, 0)
+        Me.Panel5.Name = "Panel5"
+        Me.Panel5.Size = New System.Drawing.Size(202, 98)
+        Me.Panel5.TabIndex = 9
+        '
+        'rbEmboss
+        '
+        Me.rbEmboss.AutoSize = True
+        Me.rbEmboss.Location = New System.Drawing.Point(6, 141)
+        Me.rbEmboss.Name = "rbEmboss"
+        Me.rbEmboss.Size = New System.Drawing.Size(117, 17)
+        Me.rbEmboss.TabIndex = 5
+        Me.rbEmboss.Text = "Emboss (чеканить)"
+        Me.rbEmboss.UseVisualStyleBackColor = True
+        '
+        'rbRevolve
+        '
+        Me.rbRevolve.AutoSize = True
+        Me.rbRevolve.Location = New System.Drawing.Point(6, 162)
+        Me.rbRevolve.Name = "rbRevolve"
+        Me.rbRevolve.Size = New System.Drawing.Size(118, 17)
+        Me.rbRevolve.TabIndex = 6
+        Me.rbRevolve.Text = "Revolve (вращать)"
+        Me.rbRevolve.UseVisualStyleBackColor = True
+        '
+        'rbThicken
+        '
+        Me.rbThicken.AutoSize = True
+        Me.rbThicken.Location = New System.Drawing.Point(6, 183)
+        Me.rbThicken.Name = "rbThicken"
+        Me.rbThicken.Size = New System.Drawing.Size(115, 17)
+        Me.rbThicken.TabIndex = 7
+        Me.rbThicken.Text = "Thicken (сгущать)"
+        Me.rbThicken.UseVisualStyleBackColor = True
+        '
+        'rbRib
+        '
+        Me.rbRib.AutoSize = True
+        Me.rbRib.Location = New System.Drawing.Point(6, 204)
+        Me.rbRib.Name = "rbRib"
+        Me.rbRib.Size = New System.Drawing.Size(80, 17)
+        Me.rbRib.TabIndex = 8
+        Me.rbRib.Text = "Rib (ребро)"
+        Me.rbRib.UseVisualStyleBackColor = True
+        '
         'Form1
         '
         Me.AutoScaleDimensions = New System.Drawing.SizeF(6.0!, 13.0!)
         Me.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font
         Me.BackColor = System.Drawing.SystemColors.ControlLight
         Me.ClientSize = New System.Drawing.Size(1228, 521)
+        Me.Controls.Add(Me.Panel5)
         Me.Controls.Add(Me.Panel4)
         Me.Controls.Add(Me.Panel3)
         Me.Controls.Add(Me.Panel2)
@@ -456,6 +589,7 @@ Partial Class Form1
         CType(Me.nudMaxChangeValue, System.ComponentModel.ISupportInitialize).EndInit()
         Me.GroupBox1.ResumeLayout(False)
         Me.GroupBox1.PerformLayout()
+        Me.Panel5.ResumeLayout(False)
         Me.ResumeLayout(False)
 
     End Sub
@@ -493,4 +627,15 @@ Partial Class Form1
     Friend WithEvents Label14 As Label
     Friend WithEvents Label13 As Label
     Friend WithEvents Label15 As Label
+    Friend WithEvents rbFillet As RadioButton
+    Friend WithEvents Panel5 As Panel
+    Friend WithEvents rbHole As RadioButton
+    Friend WithEvents rbShell As RadioButton
+    Friend WithEvents lblView As Label
+    Friend WithEvents Label16 As Label
+    Friend WithEvents cbView As ComboBox
+    Friend WithEvents rbEmboss As RadioButton
+    Friend WithEvents rbRevolve As RadioButton
+    Friend WithEvents rbThicken As RadioButton
+    Friend WithEvents rbRib As RadioButton
 End Class

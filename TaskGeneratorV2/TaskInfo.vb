@@ -21,7 +21,7 @@ Public Class TaskInfo
     'имена изображений, используемых в текущей генерируемой задаче
     Public currentImageFrontName As String = ""
     Public currentImageTopName As String = ""
-    Public currentImageLeftName As String = ""
+    Public currentImageCorrectName As String = ""
     Public currentImageWrong1Name As String = ""
     Public currentImageWrong2Name As String = ""
     Public currentImageWrong3Name As String = ""
@@ -34,6 +34,9 @@ Public Class TaskInfo
     Public maxChangeValue As Double = 0
     Public changeStep As Double = 0
 
+    Public viewOrientation As ViewOrientationTypeEnum 'вид, с которого будут делаться 4 варианта ответа. По умолчанию, это вид слева
+
+    'ФУНКЦИИ
     'вернуть все поля класса (кроме savePath) в изначальное состояние. Также очистить PictureBox-es
     Public Sub Restart()
         isReady = False
@@ -45,7 +48,7 @@ Public Class TaskInfo
 
         currentImageFrontName = ""
         currentImageTopName = ""
-        currentImageLeftName = ""
+        currentImageCorrectName = ""
         currentImageWrong1Name = ""
         currentImageWrong2Name = ""
         currentImageWrong3Name = ""
@@ -66,5 +69,34 @@ Public Class TaskInfo
         minChangeValue = (Form1.nudMinChangeValue.Value / 10)
         maxChangeValue = (Form1.nudMaxChangeValue.Value / 10)
         changeStep = (Form1.nudChangeStep.Value / 10)
+
+        Select Case Form1.cbView.Text
+            Case "слева (Left)"
+                viewOrientation = ViewOrientationTypeEnum.kLeftViewOrientation
+            Case "справа (Right)"
+                viewOrientation = ViewOrientationTypeEnum.kRightViewOrientation
+            Case "сзади (Back)"
+                viewOrientation = ViewOrientationTypeEnum.kBackViewOrientation
+            Case "снизу (Bottom)"
+                viewOrientation = ViewOrientationTypeEnum.kBottomViewOrientation
+            Case Else
+                MsgBox("Не удалось получить вид, для которого будет получено задание. Вид будет установлен по умолчанию: вид слева")
+                viewOrientation = ViewOrientationTypeEnum.kLeftViewOrientation
+        End Select
+    End Sub
+
+    'ДОПОЛНИТЕЛЬНЫЕ ФУНКЦИИ
+    'Удаление чисел < 1 из списка availableValues (находится в changeableFeatures)
+    Public Sub RemoveAvailableValuesLessThenOne()
+        'Проходим по коллекции "изменяемые фичи", работаем с каждой конкретной фичей
+        For Each cf As ChangeableFeature In changeableFeatures
+            'В коллекции "все доступные значения." должны остаться только значения > 1. Проходим циклом по ней, удаляем все значения меньше 1.
+            For i As Integer = cf.availableValues.Count - 1 To 0 Step -1
+                If cf.availableValues(i) < 1 Then
+                    cf.availableValues.RemoveAt(i)
+                    Continue For
+                End If
+            Next
+        Next
     End Sub
 End Class

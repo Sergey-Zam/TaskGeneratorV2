@@ -40,6 +40,8 @@ Public Class Form1
     Private Sub Form1_Shown(sender As Object, e As EventArgs) Handles MyBase.Shown
         'объявление переменных для сообщений
         _msgTaskGeneration = New CustomMessage("Идет процесс генерирования задачи")
+        'выбрать первое значение по умолчанию для combo box view
+        cbView.SelectedIndex = 0
     End Sub
 
     'кнонка "сгенерировать новое задание"
@@ -161,12 +163,12 @@ Public Class Form1
             MakeAndSaveScreenshot("Top", _taskInfo.currentImageTopName)
         End If
 
-        'получить вид слева - Left
+        'получить правильный вид - Correct (по умолчанию это вид слева Left)
         If _taskInfo.isGenerationFailing = False Then
-            TurnToView(ViewOrientationTypeEnum.kLeftViewOrientation)
+            TurnToView(_taskInfo.viewOrientation)
         End If
         If _taskInfo.isGenerationFailing = False Then
-            MakeAndSaveScreenshot("Left", _taskInfo.currentImageLeftName)
+            MakeAndSaveScreenshot("Correct", _taskInfo.currentImageCorrectName)
         End If
     End Sub
 
@@ -174,7 +176,7 @@ Public Class Form1
     Private Sub GetWrongVariants()
         'получить неправильный вариант Wrong1
         If _taskInfo.isGenerationFailing = False Then
-            TurnToView(ViewOrientationTypeEnum.kLeftViewOrientation) 'установить вид слева
+            TurnToView(_taskInfo.viewOrientation) 'установить тот же вид, что и для снимка Correct
             PartChange() 'изменить деталь
         End If
         If _taskInfo.isGenerationFailing = False Then
@@ -186,7 +188,7 @@ Public Class Form1
 
         'получить неправильный вариант Wrong2
         If _taskInfo.isGenerationFailing = False Then
-            TurnToView(ViewOrientationTypeEnum.kLeftViewOrientation) 'установить вид слева
+            TurnToView(_taskInfo.viewOrientation) 'установить тот же вид, что и для снимка Correct
             PartChange() 'изменить деталь
         End If
         If _taskInfo.isGenerationFailing = False Then
@@ -198,7 +200,7 @@ Public Class Form1
 
         'получить неправильный вариант Wrong3
         If _taskInfo.isGenerationFailing = False Then
-            TurnToView(ViewOrientationTypeEnum.kLeftViewOrientation) 'установить вид слева
+            TurnToView(_taskInfo.viewOrientation) 'установить тот же вид, что и для снимка Correct
             PartChange() 'изменить деталь
         End If
         If _taskInfo.isGenerationFailing = False Then
@@ -245,56 +247,78 @@ Public Class Form1
 
     'вспомогательная функция: Построение списка возможных вариантов изменений детали
     Private Sub BuildingPossiblePartChanges()
+        Dim oPartFeatures As New List(Of PartFeature) 'список фич, с которыми идет работа
+
         'Если выбран вариант изменять Extrude
         If rbExtrude.Checked Then
-            'Получить коллекцию: фичи "выдавливание" (ExtrudeFeatures)
-            Dim oExtrudeFeatures As ExtrudeFeatures = _taskInfo.oDoc.ComponentDefinition.Features.ExtrudeFeatures
-
-            'Проверить: если в коллекции фич "выдавливание" ноль элементов, дальнейшая работа невозможна
-            If oExtrudeFeatures.Count = 0 Then
-                MsgBox("Ошибка: деталь не содержит ни одной extrude feature.")
-                _taskInfo.isGenerationFailing = True 'дальнейшая генерация невозможна
-                Exit Sub
-            End If
-
-            'Проходим по коллекции фич "выдавливание", работаем с каждой конкретной фичей
-            For Each oExtrudeFeature As ExtrudeFeature In oExtrudeFeatures
-                'необходимый параметр distance всегда стоит первым в коллекции FeatureDimensions
-                Dim distance As Double = oExtrudeFeature.FeatureDimensions(1).Parameter._Value
-
-                'Параметр distance не нулевой? Если да, фича изменяема. Добавить ее в пока пустую коллекцию "изменяемые фичи"
-                If distance <> 0 Then
-                    _taskInfo.changeableFeatures.Add(New ChangeableFeature(oExtrudeFeature, distance))
-                End If
+            For Each oExtrudeFeature As ExtrudeFeature In _taskInfo.oDoc.ComponentDefinition.Features.ExtrudeFeatures
+                oPartFeatures.Add(oExtrudeFeature)
             Next
         End If
 
         'Если выбран вариант изменять Chamfer
         If rbChamfer.Checked Then
-            'Получить коллекцию: фичи "фаска" (ChamferFeatures)
-            Dim oChamferFeatures As ChamferFeatures = _taskInfo.oDoc.ComponentDefinition.Features.ChamferFeatures
-
-            'Проверить: если в коллекции фич "фаска" ноль элементов, дальнейшая работа невозможна
-            If oChamferFeatures.Count = 0 Then
-                MsgBox("Ошибка: деталь не содержит ни одной chamfer feature.")
-                _taskInfo.isGenerationFailing = True 'дальнейшая генерация невозможна
-                Exit Sub
-            End If
-
-            'Проходим по коллекции фич "фаска", работаем с каждой конкретной фичей
-            For Each oChamferFeature As ChamferFeature In oChamferFeatures
-                'необходимый параметр distance всегда стоит первым в коллекции ChamferDimensions
-                Dim distance As Double = oChamferFeature.FeatureDimensions(1).Parameter._Value
-
-                'Параметр distance не нулевой? Если да, фича изменяема. Добавить ее в пока пустую коллекцию "изменяемые фичи"
-                If distance <> 0 Then
-                    _taskInfo.changeableFeatures.Add(New ChangeableFeature(oChamferFeature, distance))
-                End If
+            For Each oChamferFeature As ChamferFeature In _taskInfo.oDoc.ComponentDefinition.Features.ChamferFeatures
+                oPartFeatures.Add(oChamferFeature)
             Next
         End If
 
+        'Если выбран вариант изменять Fillet
+        If rbFillet.Checked Then
+            For Each oFilletFeature As FilletFeature In _taskInfo.oDoc.ComponentDefinition.Features.FilletFeatures
+                oPartFeatures.Add(oFilletFeature)
+            Next
+        End If
+
+        'Если выбран вариант изменять Hole
+        If rbHole.Checked Then
+            For Each oHoleFeature As HoleFeature In _taskInfo.oDoc.ComponentDefinition.Features.HoleFeatures
+                oPartFeatures.Add(oHoleFeature)
+            Next
+        End If
+
+        'Если выбран вариант изменять Shell
+        If rbShell.Checked Then
+            For Each oShellFeature As ShellFeature In _taskInfo.oDoc.ComponentDefinition.Features.ShellFeatures
+                oPartFeatures.Add(oShellFeature)
+            Next
+        End If
+
+        'Если выбран вариант изменять Emboss
+        If rbEmboss.Checked Then
+            For Each oEmbossFeature As EmbossFeature In _taskInfo.oDoc.ComponentDefinition.Features.EmbossFeatures
+                oPartFeatures.Add(oEmbossFeature)
+            Next
+        End If
+
+        'Если выбран вариант изменять Revolve
+        If rbRevolve.Checked Then
+            For Each oRevolveFeature As RevolveFeature In _taskInfo.oDoc.ComponentDefinition.Features.RevolveFeatures
+                oPartFeatures.Add(oRevolveFeature)
+            Next
+        End If
+
+        'Если выбран вариант изменять Thicken
+        If rbThicken.Checked Then
+            For Each oThickenFeature As ThickenFeature In _taskInfo.oDoc.ComponentDefinition.Features.ThickenFeatures
+                oPartFeatures.Add(oThickenFeature)
+            Next
+        End If
+
+        'Если выбран вариант изменять Rib
+        If rbRib.Checked Then
+            For Each oRibFeature As RibFeature In _taskInfo.oDoc.ComponentDefinition.Features.RibFeatures
+                oPartFeatures.Add(oRibFeature)
+            Next
+        End If
 
         'ДАЛЕЕ ОБЩИЙ КОД ДЛЯ РАЗНЫХ ТИПОВ ФИЧ
+        FindChangeableFeatures(oPartFeatures)
+
+        If _taskInfo.isGenerationFailing = True Then 'дальнейшая генерация невозможна
+            Exit Sub
+        End If
+
         'Проверить: если в коллекции фич "изменяемые фичи" ноль элементов, дальнейшая работа невозможна
         If _taskInfo.changeableFeatures.Count = 0 Then
             MsgBox("Ошибка: ни одну из features невозможно изменить.")
@@ -325,17 +349,8 @@ Public Class Form1
             Next
         Next
 
-        'Удаление не положительных чисел
-        'Проходим по коллекции "изменяемые фичи", работаем с каждой конкретной фичей
-        For Each cf As ChangeableFeature In _taskInfo.changeableFeatures
-            'В коллекции "все доступные значения." должны остаться только положительные значения. Проходим циклом по ней, удаляем все отрицательные значения и нули.
-            For d As Double = cf.availableValues.Count - 1 To 0 Step -1
-                If cf.availableValues(d) <= 0 Then
-                    cf.availableValues.RemoveAt(d)
-                    Continue For
-                End If
-            Next
-        Next
+        'у всех "изменяемых фич" надо почистить поле-коллекцию "все доступные значения" от значений < 1
+        _taskInfo.RemoveAvailableValuesLessThenOne()
 
         'теперь необходимо проверить каждый вариант доступных значений применим ли он к детали?
         'Проходим по коллекции "изменяемые фичи", работаем с каждой конкретной фичей
@@ -358,20 +373,10 @@ Public Class Form1
             Next
         Next
 
-        'теперь у всех "изменяемых фич" надо снова почистить поле-коллекцию "все доступные значения" от отрицательных значений
-        'Удаление не положительных чисел
-        'Проходим по коллекции "изменяемые фичи", работаем с каждой конкретной фичей
-        For Each cf As ChangeableFeature In _taskInfo.changeableFeatures
-            'В коллекции "все доступные значения." должны остаться только положительные значения. Проходим циклом по ней, удаляем все отрицательные значения и нули.
-            For i As Integer = cf.availableValues.Count - 1 To 0 Step -1
-                If cf.availableValues(i) <= 0 Then
-                    cf.availableValues.RemoveAt(i)
-                    Continue For
-                End If
-            Next
-        Next
+        'теперь у всех "изменяемых фич" надо снова почистить поле-коллекцию "все доступные значения" от значений < 1
+        _taskInfo.RemoveAvailableValuesLessThenOne()
 
-        'теперь в коллекции "изменяемые фичи" должны остаться только те элtменты, у которых коллекция: доступные значения не пустая.
+        'теперь в коллекции "изменяемые фичи" должны остаться только те элементы, у которых коллекция: доступные значения не пустая.
         'Проходим по коллекции "изменяемые фичи", работаем с каждой конкретной фичей
         For i As Integer = _taskInfo.changeableFeatures.Count - 1 To 0 Step -1
             'Если поле "все доступные значения" имеет ноль элементов, удалить фичу из коллекции "изменяемые фичи"
@@ -387,6 +392,33 @@ Public Class Form1
             _taskInfo.isGenerationFailing = True 'дальнейшая генерация невозможна
             Exit Sub
         End If
+    End Sub
+
+    'вспомогательная функция: найти изменяемые фичи (для фич выбранного пользователем типа)
+    Private Sub FindChangeableFeatures(ByVal oPartFeatures As List(Of PartFeature))
+        'Проверить: если в коллекции фич ноль элементов, дальнейшая работа невозможна
+        If oPartFeatures.Count = 0 Then
+            MsgBox("Ошибка: деталь не содержит ни одной feature выбранного типа.")
+            _taskInfo.isGenerationFailing = True 'дальнейшая генерация невозможна
+            Exit Sub
+        End If
+
+        'Проходим по коллекции фич, работаем с каждой конкретной фичей
+        For Each oPartFeature As PartFeature In oPartFeatures
+            'необходимый параметр distance всегда стоит первым в коллекции FeatureDimensions
+            Try
+                'MsgBox(oPartFeature.FeatureDimensions(1).Parameter._Value.ToString)
+                Dim distance As Double = oPartFeature.FeatureDimensions(1).Parameter._Value
+                'Параметр distance не нулевой? Если да, фича изменяема. Добавить ее в пока пустую коллекцию "изменяемые фичи"
+                If distance <> 0 Then
+                    _taskInfo.changeableFeatures.Add(New ChangeableFeature(oPartFeature, distance))
+                End If
+            Catch
+                MsgBox("Ошибка: невозможно получить значение изменяемого параметра для данной feature")
+                _taskInfo.isGenerationFailing = True 'дальнейшая генерация невозможна
+                Exit Sub
+            End Try
+        Next
     End Sub
 
     'вспомогательная функция: изменение параметров детали
@@ -440,15 +472,15 @@ Public Class Form1
         pbTop.Image = Top
     End Sub
 
-    'вспомогательная функция: размещение на форме изображений варианта Left и трех неправильных вариантов
+    'вспомогательная функция: размещение на форме изображений варианта Correct и трех неправильных вариантов
     Private Sub PlacingDynamicVariants()
-        Dim Left As Image
+        Dim Correct As Image
         Dim Wrong1 As Image
         Dim Wrong2 As Image
         Dim Wrong3 As Image
 
         Try
-            Left = Image.FromFile(_taskInfo.savePath & "\" & _taskInfo.currentImageLeftName)
+            Correct = Image.FromFile(_taskInfo.savePath & "\" & _taskInfo.currentImageCorrectName)
             Wrong1 = Image.FromFile(_taskInfo.savePath & "\" & _taskInfo.currentImageWrong1Name)
             Wrong2 = Image.FromFile(_taskInfo.savePath & "\" & _taskInfo.currentImageWrong2Name)
             Wrong3 = Image.FromFile(_taskInfo.savePath & "\" & _taskInfo.currentImageWrong3Name)
@@ -458,7 +490,7 @@ Public Class Form1
             Exit Sub
         End Try
 
-        'pbVariant1.Image = Left
+        'pbVariant1.Image = Correct
         'pbVariant2.Image = Wrong1
         'pbVariant3.Image = Wrong2
         'pbVariant4.Image = Wrong3
@@ -469,7 +501,7 @@ Public Class Form1
         numbers.Add(3)
         numbers.Add(4) 'номеров возможных вариантов размещения четыре
 
-        'выбираем номер правильного ответа (Left)
+        'выбираем номер правильного ответа (Correct)
         Dim r As Integer = GetRandom(0, numbers.Count) '0-3
         _taskInfo.placeOfRightAnswer = numbers(r) '1-4
         numbers.RemoveAt(r) 'удалить выбранный номер
@@ -489,16 +521,16 @@ Public Class Form1
         Dim placeOfWrong3 = numbers(r)
         numbers.RemoveAt(r) 'удалить выбранный номер
 
-        'размещение на форме Left
+        'размещение на форме Correct
         Select Case _taskInfo.placeOfRightAnswer
             Case 1
-                pbVariant1.Image = Left
+                pbVariant1.Image = Correct
             Case 2
-                pbVariant2.Image = Left
+                pbVariant2.Image = Correct
             Case 3
-                pbVariant3.Image = Left
+                pbVariant3.Image = Correct
             Case 4
-                pbVariant4.Image = Left
+                pbVariant4.Image = Correct
             Case Else
                 MsgBox("Ошибка: не удалось разместить правильный ответ")
                 _taskInfo.isGenerationFailing = True 'дальнейшая генерация невозможна
@@ -626,6 +658,11 @@ Public Class Form1
         Else
             MsgBox("Сначала необходимо сгенерировать задание")
         End If
+    End Sub
+
+    'произошло изменение значение в combo box "сторона правильного вида"
+    Private Sub cbView_SelectedIndexChanged(sender As Object, e As EventArgs) Handles cbView.SelectedIndexChanged
+        lblView.Text = cbView.Text
     End Sub
 
     'вспомогательная функция: иземенить параметр ExtrudeFeature в модели в инвентор на указанный 
