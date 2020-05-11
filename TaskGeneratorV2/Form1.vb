@@ -11,8 +11,8 @@ Imports PdfSharp.Pdf
 Public Class Form1
     Dim _invApp As Inventor.Application 'переменная типа Inventor.Application Используется для доступа к объекту Inventor Application
     Dim _started As Boolean = False 'Данная логическая переменная служит индикатором, был ли данный сеанс Inventor создан нашей программой
-    Dim _taskInfo As TaskInfo = New TaskInfo() 'Класс с дополнительной техничсекой информацией по текущей задаче
-    Dim _msgTaskGeneration As CustomMessage 'сообщение о том, что задача пока генерируется (это долгий процесс)
+    Dim _taskInfo As TaskInfo = New TaskInfo() 'Класс с дополнительной техничсекой информацией по текущему заданию
+    Dim _msgTaskGeneration As CustomMessage 'сообщение о том, что задание пока генерируется (это долгий процесс)
 
     Public Sub New()
         ' Этот вызов является обязательным для конструктора.
@@ -39,13 +39,13 @@ Public Class Form1
     'функция запускается, как только форма загружена.
     Private Sub Form1_Shown(sender As Object, e As EventArgs) Handles MyBase.Shown
         'объявление переменных для сообщений
-        _msgTaskGeneration = New CustomMessage("Идет процесс генерирования задачи")
+        _msgTaskGeneration = New CustomMessage("Идет процесс генерирования задания")
         'выбрать первое значение по умолчанию для combo box view
         cbView.SelectedIndex = 0
     End Sub
 
-    'кнонка "сгенерировать новое задание"
-    Private Sub btnRun_Click(sender As Object, e As EventArgs) Handles btnRun.Click
+    'вызов фунции из кнопки "сгенерировать новое задание"
+    Private Sub Run()
         _msgTaskGeneration.Show() 'показать сообщение
 
         _taskInfo.Restart() 'очистить старые значения от прошлой генерации
@@ -249,6 +249,8 @@ Public Class Form1
     Private Sub BuildingPossiblePartChanges()
         Dim oPartFeatures As New List(Of PartFeature) 'список фич, с которыми идет работа
 
+        ChangeableFeature.index = 1 'для большинства feature, изменяемый параметр стоит под первым номером в массиве
+
         'Если выбран вариант изменять Extrude
         If rbExtrude.Checked Then
             For Each oExtrudeFeature As ExtrudeFeature In _taskInfo.oDoc.ComponentDefinition.Features.ExtrudeFeatures
@@ -305,6 +307,48 @@ Public Class Form1
             Next
         End If
 
+        'Если выбран вариант изменять FaceDraft
+        If rbFaceDraft.Checked Then
+            'дополнительное изменение введенных параметров
+            _taskInfo.minChangeValue /= 10
+            _taskInfo.maxChangeValue /= 10
+            _taskInfo.changeStep /= 10
+
+            For Each oFaceDraftFeature As FaceDraftFeature In _taskInfo.oDoc.ComponentDefinition.Features.FaceDraftFeatures
+                oPartFeatures.Add(oFaceDraftFeature)
+            Next
+        End If
+
+        'Если выбран вариант изменять Thread
+        If rbThread.Checked Then
+            'для данного типа feature, изменяемый параметр стоит под вторым номером в массиве
+            ChangeableFeature.index = 2
+
+            For Each oThreadFeature As ThreadFeature In _taskInfo.oDoc.ComponentDefinition.Features.ThreadFeatures
+                oPartFeatures.Add(oThreadFeature)
+            Next
+        End If
+
+        'Если выбран вариант изменять CircularPattern
+        If rbCircularPattern.Checked Then
+            'для данного типа feature, изменяемый параметр стоит под вторым номером в массиве
+            ChangeableFeature.index = 2
+
+            For Each oCircularPatternFeature As CircularPatternFeature In _taskInfo.oDoc.ComponentDefinition.Features.CircularPatternFeatures
+                oPartFeatures.Add(oCircularPatternFeature)
+            Next
+        End If
+
+        'Если выбран вариант изменять RectangularPattern
+        If rbRectangularPattern.Checked Then
+            'для данного типа feature, изменяемый параметр стоит под вторым номером в массиве
+            ChangeableFeature.index = 2
+
+            For Each oRectangularPatternFeature As RectangularPatternFeature In _taskInfo.oDoc.ComponentDefinition.Features.RectangularPatternFeatures
+                oPartFeatures.Add(oRectangularPatternFeature)
+            Next
+        End If
+
         'Если выбран вариант изменять Rib
         If rbRib.Checked Then
             For Each oRibFeature As RibFeature In _taskInfo.oDoc.ComponentDefinition.Features.RibFeatures
@@ -349,8 +393,8 @@ Public Class Form1
             Next
         Next
 
-        'у всех "изменяемых фич" надо почистить поле-коллекцию "все доступные значения" от значений < 1
-        _taskInfo.RemoveAvailableValuesLessThenOne()
+        'у всех "изменяемых фич" надо почистить поле-коллекцию "все доступные значения" от не подходящих значений
+        _taskInfo.RemoveWrongValuesFromAvailableValues()
 
         'теперь необходимо проверить каждый вариант доступных значений применим ли он к детали?
         'Проходим по коллекции "изменяемые фичи", работаем с каждой конкретной фичей
@@ -373,8 +417,8 @@ Public Class Form1
             Next
         Next
 
-        'теперь у всех "изменяемых фич" надо снова почистить поле-коллекцию "все доступные значения" от значений < 1
-        _taskInfo.RemoveAvailableValuesLessThenOne()
+        'у всех "изменяемых фич" надо почистить поле-коллекцию "все доступные значения" от не подходящих значений
+        _taskInfo.RemoveWrongValuesFromAvailableValues()
 
         'теперь в коллекции "изменяемые фичи" должны остаться только те элементы, у которых коллекция: доступные значения не пустая.
         'Проходим по коллекции "изменяемые фичи", работаем с каждой конкретной фичей
@@ -405,10 +449,16 @@ Public Class Form1
 
         'Проходим по коллекции фич, работаем с каждой конкретной фичей
         For Each oPartFeature As PartFeature In oPartFeatures
-            'необходимый параметр distance всегда стоит первым в коллекции FeatureDimensions
+            'для теста
+            Dim str As String = oPartFeature.Name & " (Count: " & oPartFeature.FeatureDimensions.Count & ")" & vbCrLf
+            For Each fd As FeatureDimension In oPartFeature.FeatureDimensions
+                str &= fd.Parameter._Value.ToString & vbCrLf
+            Next
+            MsgBox(str)
+
+            'необходимый параметр distance обычно стоит первым в коллекции FeatureDimensions
             Try
-                'MsgBox(oPartFeature.FeatureDimensions(1).Parameter._Value.ToString)
-                Dim distance As Double = oPartFeature.FeatureDimensions(1).Parameter._Value
+                Dim distance As Double = oPartFeature.FeatureDimensions(ChangeableFeature.index).Parameter._Value
                 'Параметр distance не нулевой? Если да, фича изменяема. Добавить ее в пока пустую коллекцию "изменяемые фичи"
                 If distance <> 0 Then
                     _taskInfo.changeableFeatures.Add(New ChangeableFeature(oPartFeature, distance))
@@ -623,43 +673,6 @@ Public Class Form1
         End If
     End Sub
 
-    'нажата кнопка "Экспорт в PDF"
-    Private Sub btnExport_Click(sender As Object, e As EventArgs) Handles btnExport.Click
-        If _taskInfo.isReady = True Then
-            'Screen of form
-            Dim frm = Form.ActiveForm
-            Dim bmp As Bitmap = New Bitmap(frm.Width, frm.Height)
-            frm.DrawToBitmap(bmp, New Rectangle(0, 0, bmp.Width, bmp.Height))
-            'bmp.Save("C:\Users\Сергей\Desktop\test.bmp")
-            'дополнительно: установить разрешение для изменения размера формы (если не умещается в pdf)
-            bmp.SetResolution(bmp.Width * 0.12, bmp.Height * 0.12) 'чем больше множители, тем меньше изображение
-
-            'To pdf
-            Dim doc As New PdfDocument()
-            Dim oPage As New PdfPage()
-            'отступы в pdf, также помогают уместить изображение
-            oPage.TrimMargins.Left = 20
-            oPage.TrimMargins.Top = 30
-            oPage.TrimMargins.Right = 20
-            doc.Pages.Add(oPage)
-            Dim xgr As XGraphics = XGraphics.FromPdfPage(oPage)
-            Dim strm As MemoryStream = New MemoryStream()
-            bmp.Save(strm, System.Drawing.Imaging.ImageFormat.Png)
-            Dim xfoto As XImage = XImage.FromStream(strm)
-            xgr.DrawImage(xfoto, 0, 0)
-            Dim savefiledialog1 As New SaveFileDialog
-            savefiledialog1.FileName = "Save as... "
-            savefiledialog1.Filter = ("PDF File|*.pdf")
-            If savefiledialog1.ShowDialog() = System.Windows.Forms.DialogResult.OK Then
-                doc.Save(savefiledialog1.FileName)
-                doc.Close()
-            End If
-            xfoto.Dispose()
-        Else
-            MsgBox("Сначала необходимо сгенерировать задание")
-        End If
-    End Sub
-
     'произошло изменение значение в combo box "сторона правильного вида"
     Private Sub cbView_SelectedIndexChanged(sender As Object, e As EventArgs) Handles cbView.SelectedIndexChanged
         lblView.Text = cbView.Text
@@ -671,7 +684,7 @@ Public Class Form1
     Private Function ChangeParamDistInFeatureInInventor(ByVal feature As PartFeature, ByVal newDistance As Double)
         '1-удается ли сделать это преобразование в инвентор?
         Try
-            feature.FeatureDimensions(1).Parameter._Value = newDistance
+            feature.FeatureDimensions(ChangeableFeature.index).Parameter._Value = newDistance
             _taskInfo.oDoc.Update()
         Catch ex As Exception
             Return False
@@ -708,4 +721,69 @@ Public Class Form1
             End Try
         Next
     End Sub
+
+    'ФУНКЦИИ ВЕРХНЕГО МЕНЮ
+    'Скрыть/показать верхнюю панель - настройки
+    Private Sub ShowHideOptionsToolStripMenuItem_Click(sender As Object, e As EventArgs) Handles ShowHideOptionsToolStripMenuItem.Click
+        PanelTop.Visible = Not PanelTop.Visible
+    End Sub
+
+    'Сгенерировать новое задание
+    Private Sub RunToolStripMenuItem_Click(sender As Object, e As EventArgs) Handles RunToolStripMenuItem.Click
+        Run()
+    End Sub
+
+    'Экспорт задания в PDF
+    Private Sub ExportToolStripMenuItem_Click(sender As Object, e As EventArgs) Handles ExportToolStripMenuItem.Click
+        If _taskInfo.isReady = True Then
+            PanelTop.Visible = False 'убрать панель настроек с экрана (если есть)
+
+            'Screen of form
+            Dim frm = Form.ActiveForm
+            Dim bmp As Bitmap = New Bitmap(frm.Width, frm.Height)
+            frm.DrawToBitmap(bmp, New Rectangle(0, 0, bmp.Width, bmp.Height))
+            'bmp.Save("C:\Users\Сергей\Desktop\test.bmp")
+            'дополнительно: установить разрешение для изменения размера формы (если не умещается в pdf)
+            bmp.SetResolution(bmp.Width * 0.12, bmp.Height * 0.12) 'чем больше множители, тем меньше изображение
+
+            'To pdf
+            Dim doc As New PdfDocument()
+            Dim oPage As New PdfPage()
+            'отступы в pdf, также помогают уместить изображение
+            oPage.TrimMargins.Left = 20
+            oPage.TrimMargins.Top = 30
+            oPage.TrimMargins.Right = 20
+            doc.Pages.Add(oPage)
+            Dim xgr As XGraphics = XGraphics.FromPdfPage(oPage)
+            Dim strm As MemoryStream = New MemoryStream()
+            bmp.Save(strm, System.Drawing.Imaging.ImageFormat.Png)
+            Dim xfoto As XImage = XImage.FromStream(strm)
+            xgr.DrawImage(xfoto, 0, 0)
+            Dim savefiledialog1 As New SaveFileDialog
+            savefiledialog1.FileName = "Task " & DateTime.Now.ToString("yyyy/MM/dd HH.mm.ss")
+            savefiledialog1.Filter = ("PDF File|*.pdf")
+            If savefiledialog1.ShowDialog() = System.Windows.Forms.DialogResult.OK Then
+                doc.Save(savefiledialog1.FileName)
+                doc.Close()
+            End If
+            xfoto.Dispose()
+        Else
+            MsgBox("Сначала необходимо сгенерировать задание")
+        End If
+    End Sub
+
+    'Выход - Закрыть форму
+    Private Sub ExitToolStripMenuItem_Click_1(sender As Object, e As EventArgs) Handles ExitToolStripMenuItem.Click
+        Me.Close()
+    End Sub
+
+    'Показать инструкции
+    Private Sub InstructionsToolStripMenuItem_Click(sender As Object, e As EventArgs) Handles InstructionsToolStripMenuItem.Click
+        Dim text As String = "1. Откройте в Inventor деталь, для которой будет генерироваться задание" & vbCrLf &
+            "2. При необходимости выберите нужные настройки (включить отображение настроек можно через меню)" & vbCrLf &
+            "3. Сгенерируйте задание" & vbCrLf &
+            "4. Экспортируйте задание"
+        MsgBox(text, vbOKOnly + vbInformation, "Инструкции")
+    End Sub
+
 End Class

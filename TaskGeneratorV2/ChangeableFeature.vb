@@ -13,6 +13,11 @@ Public Class ChangeableFeature
     Public distance As Double = 0 'эталонное значение параметра distance
     Public availableValues As New List(Of Double) 'коллекция (числа, в мм): все доступные значения. Изначально пустая.
 
+    'статическое поле, доступно через класс, а не объект (пример: ChangeableFeature.index) 
+    'это поле означает номер индекс в массиве oPartFeature.FeatureDimensions(1).Parameter._Value
+    'для большинства feature это 1 (первый номер, с массивах Inventor нумерация начинается с 1), но есть исключения
+    Public Shared index As Integer = 1
+
     'конструктор
     Public Sub New(ByVal Feature As PartFeature, ByVal Distance As Double)
         Me.feature = Feature

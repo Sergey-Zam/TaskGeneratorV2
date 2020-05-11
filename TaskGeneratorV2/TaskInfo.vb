@@ -86,13 +86,14 @@ Public Class TaskInfo
     End Sub
 
     'ДОПОЛНИТЕЛЬНЫЕ ФУНКЦИИ
-    'Удаление чисел < 1 из списка availableValues (находится в changeableFeatures)
-    Public Sub RemoveAvailableValuesLessThenOne()
+    'Удаление чисел "не подходящих" чисел из списка availableValues (находится в changeableFeatures)
+    'не подходят числа: меньше 0.001 (т.е. отрицательные, нулевые, близкие к нулю) и числа, совпадающие с эталонным значением (distance), т.к. это правильный вариант, и он не может выбираться при генерации неправильеного варианта
+    Public Sub RemoveWrongValuesFromAvailableValues()
         'Проходим по коллекции "изменяемые фичи", работаем с каждой конкретной фичей
         For Each cf As ChangeableFeature In changeableFeatures
-            'В коллекции "все доступные значения." должны остаться только значения > 1. Проходим циклом по ней, удаляем все значения меньше 1.
+            'В коллекции "все доступные значения." должны остаться только значения > 0.001. Проходим циклом по ней, удаляем все значения меньше 0.001.
             For i As Integer = cf.availableValues.Count - 1 To 0 Step -1
-                If cf.availableValues(i) < 1 Then
+                If cf.availableValues(i) < 0.001 Or cf.availableValues(i) = cf.distance Then
                     cf.availableValues.RemoveAt(i)
                     Continue For
                 End If
